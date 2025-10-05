@@ -1,0 +1,10 @@
+﻿{
+  "Name": "Instant Keg Refill",
+  "Author": "MysticalAsian",
+  "Version": "1.0.0",
+  "Description": "You can now instantly fill every keg on the current map!!",
+  "UniqueID": "MA.InstantKeg",
+  "EntryDll": "Instant Keg.dll",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": []
+}
