@@ -25,7 +25,7 @@ namespace YourProjectName
                 {
                     Game1.activeClickableMenu = new ConfirmationMenu(
                         GetKegs().Count,
-                        () => { FillAllKegs(GetKegs()); },
+                        () => FillAllKegs(GetKegs()),
                         () => { Game1.exitActiveMenu(); }
                         );
                 }
@@ -45,12 +45,12 @@ namespace YourProjectName
             return kegs;
         }
 
-        private void FillAllKegs(List<StardewValley.Object> kegs)
+        private int FillAllKegs(List<StardewValley.Object> kegs)
         {
             Farmer player = Game1.player;
             StardewValley.Object? heldItem = player.ActiveItem as StardewValley.Object;
             if (heldItem is null)
-                return;
+                return kegs.Count;
             int beforeCount = 0;
             foreach (StardewValley.Object keg in kegs)
             {
@@ -65,6 +65,15 @@ namespace YourProjectName
                 if (beforeCount == heldItem.Stack)
                     break;
             }
+
+            int emptyKegs = 0;
+            foreach (StardewValley.Object keg in kegs)
+            {
+                if (keg.heldObject.Value == null)
+                    emptyKegs++;
+            }
+            return emptyKegs;
+
         }
         private void resizeCustomMenu(object? sender, WindowResizedEventArgs e)
         {
@@ -72,7 +81,7 @@ namespace YourProjectName
             {
                 Game1.activeClickableMenu = new ConfirmationMenu(
                         GetKegs().Count,
-                        () => { FillAllKegs(GetKegs()); },
+                        () => FillAllKegs(GetKegs()),
                         () => { Game1.exitActiveMenu(); }
                         );
             }

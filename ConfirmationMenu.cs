@@ -14,32 +14,33 @@ namespace Instant_Keg
     public class ConfirmationMenu : IClickableMenu
     {
         const int UIWidth = 550;
-        const int UIHeight = 300;
+        const int UIHeight = 325;
         static int xPos = (int)((Game1.viewport.Width * Game1.options.zoomLevel / Game1.options.uiScale / 2) - (UIWidth / 2));
         static int yPos = (int)((Game1.viewport.Height * Game1.options.zoomLevel / Game1.options.uiScale / 2) - UIHeight);
+        static string baseDescription;
+        static int totalKegs;
         ClickableComponent description;
         static ClickableTextureComponent? confirmBTN;
         static ClickableTextureComponent? cancelBTN;
         Rectangle confirmBTNRect;
         Rectangle cancelBTNRect;
-        Action onConfirm;
+        Func<int> onConfirm;
         Action onCancel;
 
-        public ConfirmationMenu(int totalKegs, Action onconfirm, Action oncancel)
+        public ConfirmationMenu(int tk, Func<int> onconfirm, Action oncancel)
         {
+            totalKegs = tk;
             onConfirm = onconfirm;
             onCancel = oncancel;
             xPos = (int)((Game1.viewport.Width * Game1.options.zoomLevel / Game1.options.uiScale / 2) - (UIWidth / 2));
             yPos = (int)((Game1.viewport.Height * Game1.options.zoomLevel / Game1.options.uiScale / 2) - UIHeight);
-
-            description = new ClickableComponent(new Rectangle(xPos + (UIWidth / 2) - (UIWidth - 400 - 10), yPos + 108, UIWidth - 400, 64),
-                    $"Attempt to fill {totalKegs} EMPTY\n" +
-                    $"kegs in this location?");
+            baseDescription = $"Attempt to fill {totalKegs} EMPTY\nkegs in this location?";
+            description = new ClickableComponent(new Rectangle(xPos + (UIWidth / 2) - (UIWidth - 400 - 10), yPos + 108, UIWidth - 400, 64), baseDescription);
 
 
             Texture2D tex = Game1.content.Load<Texture2D>("LooseSprites\\Cursors");
             int btnSize = 64;
-            int marginX = 150;  // distance from left/right edge
+            int marginX = 150;
             int baseY = yPos + UIHeight - 105;
 
             confirmBTN = new ClickableTextureComponent(
@@ -101,10 +102,15 @@ namespace Instant_Keg
             if (confirmBTNRect.Contains(x, y))
             {
                 Game1.playSound("select");
-                onConfirm.Invoke();
-                onCancel.Invoke();
+                int remaining = onConfirm.Invoke();
+                if (remaining > 0)
+                {
+                    baseDescription = $"Attempt to fill {remaining} EMPTY\nkegs in this location?";
+                }
+                description.name = $"{baseDescription}\nFilled {totalKegs - remaining} of {totalKegs} keg(s).";
+
             }
-            if(cancelBTNRect.Contains(x,y))
+            if (cancelBTNRect.Contains(x,y))
             {
                 Game1.playSound("select");
                 onCancel.Invoke(); 
