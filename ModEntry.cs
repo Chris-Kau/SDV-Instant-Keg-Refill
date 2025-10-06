@@ -1,4 +1,5 @@
-﻿using Instant_Keg;
+﻿using GenericModConfigMenu;
+using Instant_Keg;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -7,18 +8,43 @@ namespace YourProjectName
 {
     internal sealed class ModEntry : Mod
     {
+
+        private ModConfig Config;
         public override void Entry(IModHelper helper)
         {
-            helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+            this.Config = this.Helper.ReadConfig<ModConfig>();
+            helper.Events.Input.ButtonsChanged += this.OnButtonsChanged;
             helper.Events.Display.WindowResized += this.resizeCustomMenu;
+            helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         }
 
 
-        private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
+        private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
+        {
+            // get Generic Mod Config Menu's API (if it's installed)
+            var configMenu = this.Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null)
+                return;
+
+            // register mod
+            configMenu.Register(
+                mod: this.ModManifest,
+                reset: () => this.Config = new ModConfig(),
+                save: () => this.Helper.WriteConfig(this.Config)
+            );
+            configMenu.AddKeybindList(
+                mod: this.ModManifest,
+                getValue: () => this.Config.InstantKegKeybind,
+                setValue: value => this.Config.InstantKegKeybind = value,
+                name: () => "Keybind (click to change):\n"
+            );
+        }
+
+        private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
-            if(e.Button == SButton.V)
+            if(this.Config.InstantKegKeybind.JustPressed())
             {
                 Farmer player = Game1.player;
                 if (Game1.activeClickableMenu is null && Context.IsPlayerFree)
